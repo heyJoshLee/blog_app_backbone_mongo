@@ -6,8 +6,7 @@ var Blog = Backbone.Model.extend({
     title: "",
     url: ""
   }
-})
-
+});
 
 // Backbone collection
 
@@ -16,19 +15,19 @@ var Blogs = Backbone.Collection.extend({
 });
 
 
-var blog1 = new Blog({
-  author: "josh",
-  title: "josh\s blog",
-  url: "google.com"
-});
+// var blog1 = new Blog({
+//   author: "josh",
+//   title: "josh\s blog",
+//   url: "google.com"
+// });
 
-var blog2 = new Blog({
-  author: "jos2",
-  title: "josh\s blo2",
-  url: "google.co2"
-});
+// var blog2 = new Blog({
+//   author: "jos2",
+//   title: "josh\s blo2",
+//   url: "google.co2"
+// });
 
-var blogs = new Blogs([blog1, blog2]);
+var blogs = new Blogs();
 
 // backbone view
 
@@ -38,6 +37,44 @@ var BlogView = Backbone.View.extend({
 
   initialize: function() {
     this.template = _.template($(".blogs-list-template").html());
+  },
+
+  events: {
+    "click .edit-blog": "edit",
+    "click .update-blog": "update",
+    "click .cancel-blog": "cancel",
+    "click .delete-blog": "delete"
+  },
+
+  edit: function() {
+    this.$(".edit-blog").hide();
+    this.$(".delete-blog").hide();
+    this.$(".update-blog").show();
+    this.$(".cancel-blog").show();
+
+    var author = this.$(".author").html(),
+        title = this.$(".title").html(),
+        url = this.$(".url").html();
+
+    this.$(".author").html("<input type='text' class='form-control author-update' value='" + author + "'>");
+    this.$(".title").html("<input type='text' class='form-control title-update' value='" + title + "'>");
+    this.$(".url").html("<input type='text' class='form-control url-update' value='" + url + "'>");
+  },
+
+  update: function() {
+    this.model.set({
+      "author": $(".author-update").val(),
+      "title": $(".title-update").val(),
+      "url": $(".url-update").val()
+    });
+  },
+
+  cancel: function() {
+    blogsView.render();
+  },
+
+  delete: function() {
+    this.model.destroy();
   },
 
   render: function() {
@@ -53,10 +90,13 @@ var BlogsView = Backbone.View.extend({
 
   initialize: function() {
     this.model.on("add", this.render, this);
+    this.model.on("change", this.render, this);
+    this.model.on("remove", this.render, this);
   },
 
   render: function() {
     var self = this;
+    this.$el.html("");
     _.each(this.model.toArray(), function(blog) {
       self.$el.append((new BlogView({model: blog})).render().$el);
     });
@@ -75,5 +115,6 @@ $(document).ready(function() {
     });
     console.log(blog.toJSON());
     blogs.add(blog);
+    $("[class*='input'").val("");
   });
 })
